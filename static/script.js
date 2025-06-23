@@ -184,11 +184,12 @@ let gameData = {};
             }
 
         async function processFeatured() {
-            const featuredURL = document.getElementById("featuredImageUrl").value;
+            let featuredURL = document.getElementById("featuredImageUrl").value;
+            featuredURL = featuredURL.split('?')[0];
             const response = await fetch("/process_featured", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ url: featuredURL, game_name: gameData.game_name || "untitled", api_key: 'cmc0m4oqv0009ju0455cl2cqe' })
+                body: JSON.stringify({ url: featuredURL, game_name: gameData.game_name || "untitled", api_key: 'eyJraWQiOiI5NzIxYmUzNi1iMjcwLTQ5ZDUtOTc1Ni05ZDU5N2M4NmIwNTEiLCJhbGciOiJSUzI1NiJ9.eyJzdWIiOiJhdXRoLXNlcnZpY2UtNTYzOTM2ODItMzc4YS00MmE0LTkwMzItMWU4OWI2N2UwNDNjIiwiYXVkIjoiNDg4MzYxOTYxMDE4MTAxIiwibmJmIjoxNzUwNjY2MDMyLCJzY29wZSI6WyJiMmItYXBpLmdlbl9haSIsImIyYi1hcGkuaW1hZ2VfYXBpIl0sImlzcyI6Imh0dHBzOi8vYXBpLnBpY3NhcnQuY29tL3Rva2VuLXNlcnZpY2UiLCJvd25lcklkIjoiNDg4MzYxOTYxMDE4MTAxIiwiaWF0IjoxNzUwNjY2MDMyLCJqdGkiOiJhMDZlOGFiNi1iYzM4LTQ3MmItOGRiYi00MTA5NGY2NTkyMGIifQ.dHoQ_bGn7t8GKPS1cfkKjMK6IUdfJKsIzRGkmMZHDXdaBbB2xYD-rFuM_WyBUoGzmkzePREzVpuH4JgzaKuz2bL8w7hh05CCcuQDOQVkqAu7Oj5C5b8Rm1b4Wy7T9K6wAZZ7M5Dnh_FEK25XoF7P1Vqwl6l25PLiOMowISr2hxuNyl2HhBkk5AvFgD8EFIlf_UX9YHrRWz8DNDhUtuXhBrcDpPQPBIZnSV24VqQt7ID6s2JsWRtjlBbs3fQLnbJjHRJiNgsn_xPeKBiMwR74HH5ZC-zYfXRolu3Lwlq_xebCocppsr5WzsWJ8mS_Ge2sXC5WqE7SEfH6n0ZjsvaP0w' })
             });
             const data = await response.json();
             document.getElementById("featuredImageUrl").value = data.message;

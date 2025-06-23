@@ -17,6 +17,7 @@ handler.setFormatter(formatter)
 logger.addHandler(handler)
 
 @featured_bp.route('/process_featured', methods=['POST'])
+@featured_bp.route('/process_featured', methods=['POST'])
 def process_featured():
     try:
         logger.info("🔧 Starting featured image processing...")
@@ -29,43 +30,57 @@ def process_featured():
             logger.warning("❌ No featured image URL provided.")
             return jsonify({'error': 'Featured image URL is required'}), 400
         if not api_key:
-            logger.warning("❌ No MagicAPI key provided.")
-            return jsonify({'error': 'MagicAPI key is required'}), 400
+            logger.warning("❌ No Picsart API key provided.")
+            return jsonify({'error': 'Picsart API key is required'}), 400
 
-        # Send request to MagicAPI
-        upscale_endpoint = "https://api.magicapi.dev/api/v1/magicapi/upscaler/upscale2x/"
+        # Prepare request to Picsart API
+        logger.info(f"📤 Sending image to Picsart API for upscaling...")
+
+        url = "https://api.picsart.io/tools/1.0/upscale"
+        boundary = "---011000010111000001101001"
+        payload = (
+            f"--{boundary}\r\n"
+            f"Content-Disposition: form-data; name=\"upscale_factor\"\r\n\r\n2\r\n"
+            f"--{boundary}\r\n"
+            f"Content-Disposition: form-data; name=\"format\"\r\n\r\nJPG\r\n"
+            f"--{boundary}\r\n"
+            f"Content-Disposition: form-data; name=\"image_url\"\r\n\r\n{featured_url}\r\n"
+            f"--{boundary}--"
+        )
+
         headers = {
-            "accept": "image/jpeg",
-            "x-magicapi-key": api_key,
-            "Content-Type": "application/json"
+            "accept": "application/json",
+            "content-type": f"multipart/form-data; boundary={boundary}",
+            "X-Picsart-API-Key": api_key
         }
-        payload = {"url": featured_url}
 
-        logger.info(f"📤 Sending image to MagicAPI for upscaling...")
-        response = requests.post(upscale_endpoint, headers=headers, json=payload, timeout=120)
+        response = requests.post(url, headers=headers, data=payload.encode('utf-8'), timeout=120)
         response.raise_for_status()
-        logger.info("✅ Received response from MagicAPI.")
+        logger.info("✅ Received response from Picsart API.")
 
-        # Validate content type
-        content_type = response.headers.get("content-type", "")
-        if not content_type.startswith("image/jpeg"):
-            logger.error(f"❌ Unexpected content-type: {content_type}")
-            return jsonify({'error': 'Unexpected response from MagicAPI'}), 502
+        result = response.json()
+        if result.get("status") != "success" or not result.get("data", {}).get("url"):
+            logger.error("❌ Invalid response from Picsart API.")
+            return jsonify({'error': 'Unexpected response from Picsart API'}), 502
 
-        # Save the upscaled image to a temp file
+        upscaled_url = result["data"]["url"]
+        logger.info(f"📎 Upscaled image URL: {upscaled_url}")
+
+        # Download the upscaled image
+        upscaled_response = requests.get(upscaled_url, timeout=60)
+        upscaled_response.raise_for_status()
+
         with tempfile.NamedTemporaryFile(delete=False, suffix='.jpg') as tmp_file:
-            tmp_file.write(response.content)
+            tmp_file.write(upscaled_response.content)
             temp_path = tmp_file.name
         logger.info(f"📁 Saved upscaled image temporarily at: {temp_path}")
 
         game_name = sanitize_filename(game_name)
 
         try:
-            # Compress the image
             compressed_data = compress_image(temp_path, max_size_kb=50)
             logger.info("📦 Compressed image successfully.")
 
-            # Save compressed image to final destination
             filename = f"{game_name}_featured_final.jpg"
             filepath = save_compressed_image(compressed_data, filename)
             logger.info(f"💾 Saved compressed image at: {filepath}")
@@ -75,6 +90,7 @@ def process_featured():
                 'message': 'Image upscaled and compressed successfully',
                 'local_path': filepath,
                 'original_url': featured_url,
+                'upscaled_url': upscaled_url,
                 'size_kb': round(len(compressed_data) / 1024, 2)
             })
 
@@ -84,8 +100,8 @@ def process_featured():
                 logger.debug(f"🧹 Deleted temporary file: {temp_path}")
 
     except requests.exceptions.RequestException as req_err:
-        logger.exception("🔌 Error communicating with MagicAPI.")
-        return jsonify({'error': f'Error connecting to MagicAPI: {str(req_err)}'}), 502
+        logger.exception("🔌 Error communicating with Picsart API.")
+        return jsonify({'error': f'Error connecting to Picsart API: {str(req_err)}'}), 502
 
     except Exception as e:
         logger.exception("💥 General failure in image processing.")
