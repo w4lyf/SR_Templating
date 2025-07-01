@@ -1,13 +1,27 @@
 import requests
 from bs4 import BeautifulSoup
+import time
 
 def fetch_game_info(appid):
-    """Fetch game information from Steam"""
+    """Fetch game information from Steam, bypassing age check if needed."""
+    session = requests.Session()
+    session.headers.update({
+        "User-Agent": "Mozilla/5.0"
+    })
+
+    # Set the birthtime cookie to bypass age check (e.g., Jan 1, 1990)
+    session.cookies.set("birthtime", str(int(time.mktime(time.strptime("1990-01-01", "%Y-%m-%d")))))
+    session.cookies.set("lastagecheckage", "1-January-1990")
+    session.cookies.set("mature_content", "1")  # Sometimes needed
+
     url = f"https://store.steampowered.com/app/{appid}"
-    headers = {"User-Agent": "Mozilla/5.0"}
-    res = requests.get(url, headers=headers)
+    res = session.get(url)
     res.raise_for_status()
     soup = BeautifulSoup(res.text, 'html.parser')
+
+    # Check if we still got redirected to the age check page
+    if soup.title and "Age Check" in soup.title.text:
+        raise ValueError("Age check not bypassed – something went wrong with cookies.")
 
     # Game Name
     game_name_elem = soup.find("div", id="appHubAppName")
@@ -19,8 +33,8 @@ def fetch_game_info(appid):
     about = soup.find("div", id="game_area_description")
     if not about:
         raise ValueError("Game description not found")
-    
-    for tag in about.select("img, .bb_wide_img_ctn"): 
+
+    for tag in about.select("img, .bb_wide_img_ctn"):
         tag.decompose()
     about_html = ' '.join(str(c) for c in about.contents).replace("<h2>About This Game</h2>", "").strip()
 
@@ -33,14 +47,14 @@ def fetch_game_info(appid):
     genres = []
     developer = ""
     publisher = ""
-    
+
     if block:
         genre_links = block.select("b:-soup-contains('Genre:') + span a")
         genres = [a.text.strip() for a in genre_links]
-        
+
         dev_tag = block.select_one("b:-soup-contains('Developer:') + a")
         developer = dev_tag.text.strip() if dev_tag else ""
-        
+
         pub_tag = block.select_one("b:-soup-contains('Publisher:') + a")
         publisher = pub_tag.text.strip() if pub_tag else ""
 
@@ -55,14 +69,14 @@ def fetch_game_info(appid):
     # Screenshots
     screenshot_imgs = soup.select(".highlight_strip_item img")
     screenshots = []
-    for img in screenshot_imgs[-2:]:  # Get last 2 screenshots
+    for img in screenshot_imgs[-2:]:
         if "src" in img.attrs:
             screenshot_url = img["src"].split("?")[0].replace("116x65", "600x338")
             screenshots.append(screenshot_url)
 
     ss1_url, ss2_url = (screenshots + ["", ""])[:2]
 
-    # Generate Focus Keyphrase and Meta Description
+    # SEO Metadata
     focus_keyphrase = f"{game_name} SteamRIP com"
     meta_description = f"{game_name} Free Download SteamRIP.com Get {game_name} PC game for free instantly and play pre-installed on SteamRIP"
 

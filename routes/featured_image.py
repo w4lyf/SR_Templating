@@ -88,7 +88,7 @@ def process_featured():
             return jsonify({
                 'success': True,
                 'message': 'Image upscaled and compressed successfully',
-                'local_path': filepath,
+                'image_url': f"http://localhost:5000/images/{os.path.basename(filepath)}",
                 'original_url': featured_url,
                 'upscaled_url': upscaled_url,
                 'size_kb': round(len(compressed_data) / 1024, 2)

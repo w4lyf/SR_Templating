@@ -181,6 +181,9 @@ let gameData = {};
             const data = await response.json();
             //console.log(data)
             document.getElementById("thumbnailUrl").value = data.message;
+            const thumbLink = document.getElementById("thumbnailLink");
+            thumbLink.href = data.image_url;
+            thumbLink.style.display = 'inline';
             }
 
         async function processFeatured() {
@@ -193,5 +196,8 @@ let gameData = {};
             });
             const data = await response.json();
             document.getElementById("featuredImageUrl").value = data.message;
+            const featLink = document.getElementById("featuredLink");
+            featLink.href = data.image_url;
+            featLink.style.display = 'inline';
             }
 

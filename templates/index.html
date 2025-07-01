@@ -65,10 +65,12 @@
                 </div>
             </div>
 
+
             <div class="form-section">
                 <div class="form-group">   
                     <label>Thumbnail URL</label>
                     <input type="text" id="thumbnailUrl" placeholder="Enter Thumbnail URL" />
+                    <a id="thumbnailLink" href="#" target="_blank" style="display:none; margin-top:5px;">🔗 View Thumbnail</a>
                     <div class="buttonClass">
                         <button class="btn btn-secondary" onclick="processThumbnail()">Process</button>
                     </div>
@@ -76,15 +78,13 @@
                 <div class="form-group">
                     <label>Featured Image URL</label>
                     <input type="text" id="featuredImageUrl" placeholder="Enter Featured Image URL" />
+                    <a id="featuredLink" href="#" target="_blank" style="display:none; margin-top:5px;">🔗 View Featured</a>
                     <div class="buttonClass">
                         <button class="btn btn-secondary" onclick="processFeatured()">Process</button>
                     </div>
                 </div>
-
-
             </div>
-
-
+            
         
             <div class="buttonClass">
                 <button class="btn btn-secondary" onclick="copyCode()">Gen & Copy Code</button>

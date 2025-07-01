@@ -3,6 +3,7 @@ from PIL import Image
 import requests
 import re
 from io import BytesIO
+import os
 
 from services.image_utils import compress_image, save_compressed_image
 
@@ -29,7 +30,7 @@ def handle_process_thumbnail():
         return jsonify({
             'success': True,
             'message': 'Thumbnail processed successfully',
-            'local_path': filepath,
+            'image_url': f"http://localhost:5000/images/{os.path.basename(filepath)}",
             'size_kb': len(compressed_data) / 1024
         })
 
