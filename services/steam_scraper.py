@@ -1,6 +1,7 @@
 import requests
 from bs4 import BeautifulSoup
 import time
+import re
 
 def fetch_game_info(appid):
     """Fetch game information from Steam, bypassing age check if needed."""
@@ -74,7 +75,23 @@ def fetch_game_info(appid):
             screenshot_url = img["src"].split("?")[0].replace("116x65", "600x338")
             screenshots.append(screenshot_url)
 
-    ss1_url, ss2_url = (screenshots + ["", ""])[:2]
+        # Filter valid screenshot URLs (exclude movie thumbnails and keep only ss_*.jpg with proper size)
+    valid_screenshots = []
+    for img in screenshot_imgs:
+        src = img.get("src", "")
+        if re.search(r'/ss_.*\.600x338\.jpg$', src):
+            cleaned_url = src.split("?")[0]
+            valid_screenshots.append(cleaned_url)
+
+    # Select two screenshots from the middle
+    num_screenshots = len(valid_screenshots)
+    if num_screenshots >= 2:
+        mid_index = num_screenshots // 2
+        ss1_url = valid_screenshots[mid_index - 1] if mid_index - 1 >= 0 else ""
+        ss2_url = valid_screenshots[mid_index] if mid_index < num_screenshots else ""
+    else:
+        ss1_url, ss2_url = (valid_screenshots + ["", ""])[:2]
+
 
     # SEO Metadata
     focus_keyphrase = f"{game_name} SteamRIP com"

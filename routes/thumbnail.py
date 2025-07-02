@@ -30,7 +30,7 @@ def handle_process_thumbnail():
         return jsonify({
             'success': True,
             'message': 'Thumbnail processed successfully',
-            'image_url': f"http://localhost:5000/images/{os.path.basename(filepath)}",
+            'image_url': f"http://utopia.wisp.uno:12442/images/{os.path.basename(filepath)}",
             'size_kb': len(compressed_data) / 1024
         })
 

@@ -6,6 +6,8 @@ import tempfile
 import logging
 import re
 
+API_KEY = 'eyJraWQiOiI5NzIxYmUzNi1iMjcwLTQ5ZDUtOTc1Ni05ZDU5N2M4NmIwNTEiLCJhbGciOiJSUzI1NiJ9.eyJzdWIiOiJhdXRoLXNlcnZpY2UtNTYzOTM2ODItMzc4YS00MmE0LTkwMzItMWU4OWI2N2UwNDNjIiwiYXVkIjoiNDg4MzYxOTYxMDE4MTAxIiwibmJmIjoxNzUwNjY2MDMyLCJzY29wZSI6WyJiMmItYXBpLmdlbl9haSIsImIyYi1hcGkuaW1hZ2VfYXBpIl0sImlzcyI6Imh0dHBzOi8vYXBpLnBpY3NhcnQuY29tL3Rva2VuLXNlcnZpY2UiLCJvd25lcklkIjoiNDg4MzYxOTYxMDE4MTAxIiwiaWF0IjoxNzUwNjY2MDMyLCJqdGkiOiJhMDZlOGFiNi1iYzM4LTQ3MmItOGRiYi00MTA5NGY2NTkyMGIifQ.dHoQ_bGn7t8GKPS1cfkKjMK6IUdfJKsIzRGkmMZHDXdaBbB2xYD-rFuM_WyBUoGzmkzePREzVpuH4JgzaKuz2bL8w7hh05CCcuQDOQVkqAu7Oj5C5b8Rm1b4Wy7T9K6wAZZ7M5Dnh_FEK25XoF7P1Vqwl6l25PLiOMowISr2hxuNyl2HhBkk5AvFgD8EFIlf_UX9YHrRWz8DNDhUtuXhBrcDpPQPBIZnSV24VqQt7ID6s2JsWRtjlBbs3fQLnbJjHRJiNgsn_xPeKBiMwR74HH5ZC-zYfXRolu3Lwlq_xebCocppsr5WzsWJ8mS_Ge2sXC5WqE7SEfH6n0ZjsvaP0w'
+
 featured_bp = Blueprint('featured', __name__)
 
 # Setup logger for this blueprint
@@ -17,13 +19,12 @@ handler.setFormatter(formatter)
 logger.addHandler(handler)
 
 @featured_bp.route('/process_featured', methods=['POST'])
-@featured_bp.route('/process_featured', methods=['POST'])
 def process_featured():
     try:
         logger.info("🔧 Starting featured image processing...")
         data = request.get_json(force=True)
         featured_url = data.get('url', '').strip()
-        api_key = data.get('api_key', '').strip()
+        api_key = API_KEY
         game_name = data.get('game_name', '').strip()
 
         if not featured_url:
@@ -88,7 +89,7 @@ def process_featured():
             return jsonify({
                 'success': True,
                 'message': 'Image upscaled and compressed successfully',
-                'image_url': f"http://localhost:5000/images/{os.path.basename(filepath)}",
+                'image_url': f"http://utopia.wisp.uno:12442/images/{os.path.basename(filepath)}",
                 'original_url': featured_url,
                 'upscaled_url': upscaled_url,
                 'size_kb': round(len(compressed_data) / 1024, 2)
